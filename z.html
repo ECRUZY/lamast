@@ -101,7 +101,11 @@
       // изделие с макетом, как в конструкторе
       const hasOrder = applyOrderCode(params.get("c"), params.get("t"));
       if (hasOrder) {
-        state.files = [{ url: thumb(files[0].uuid, 1600), file: { name: files[0].name } }];
+        // все макеты заказа; у визиток первый — лицевая сторона, второй — оборотная
+        if (state.id === "cards" && state.opts.sides === "Двусторонние") {
+          ["Лицевая сторона", "Оборотная сторона"].forEach((label, i) => { if (files[i] && /^Макет( \d+)?$/.test(files[i].name)) files[i].name = label; });
+        }
+        state.files = files.map((x, i) => ({ url: thumb(x.uuid, 1600), file: { name: x.name }, side: state.id === "cards" ? (i === 0 ? "front" : i === 1 ? "back" : undefined) : undefined }));
         state.pic = 0;
         const p = product();
         const card = document.querySelector("[data-preview]");

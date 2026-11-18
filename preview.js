@@ -164,8 +164,8 @@ const DEMO_ART = {
   sticker: "", banner: "СКИДКИ 30%", film: "ОТКРЫТО", lightbox: "АПТЕКА", sign: "14",
   mobile: "", interior: "", photozone: "С днём свадьбы", cards: "", holders: "", mount: "ПРОДУКТЫ",
 };
-function artHTML(extra = "") {
-  const img = demoMode ? null : firstImg();
+function artHTML(extra = "", entry) {
+  const img = demoMode ? null : entry !== undefined ? entry : firstImg();
   return img
     ? `<div class="pv-art pv-art--${state.fit} ${extra}" style="background-image:url('${img.url}')"></div>`
     : demoMode
@@ -175,6 +175,15 @@ function artHTML(extra = "") {
 // макет, выбранный для предпросмотра (если картинок несколько)
 const imgs = () => state.files.filter((x) => x.url);
 const firstImg = () => imgs()[Math.min(state.pic, imgs().length - 1)] || null;
+
+// стороны двусторонней визитки: файл с пометкой стороны, иначе первая и вторая картинки по порядку
+function sideImg(side) {
+  const list = imgs();
+  const tagged = list.find((x) => x.side === side);
+  if (tagged) return tagged;
+  const free = list.filter((x) => !x.side);
+  return (side === "front" ? free[0] : list.some((x) => x.side === "front") ? free[0] : free[1]) || null;
+}
 
 // подбираем размер объекта под сцену, сохраняя пропорции
 function fit(w, h, maxW, maxH) {
@@ -281,8 +290,18 @@ const VIEWS = {
   },
   cards(sw, sh) {
     const { sides, lam, corners } = state.opts;
-    const W = Math.min(sw * 0.62, 460), H = W * 50 / 90;
     const c = `${corners === "Скруглённые" ? "is-round" : ""} ${lam === "Глянцевая" ? "is-gloss" : ""} ${lam === "Матовая" ? "is-matte" : ""}`;
+    if (sides === "Двусторонние" && !demoMode) {
+      // обе стороны рядом, у каждой свой макет
+      const W = Math.min(sw * 0.42, 340), H = W * 50 / 90;
+      const side = (key, label) => {
+        const img = sideImg(key);
+        const art = img ? artHTML("", img) : `<div class="pv-art pv-art--empty"><span>${label}</span></div>`;
+        return `<figure class="pv-side"><div class="pv-card pv-card--flat ${c}" style="width:${W}px;height:${H}px">${art}<i class="sheen"></i></div><figcaption>${label}</figcaption></figure>`;
+      };
+      return { bg: "bg-desk", html: `<div class="pv-sides">${side("front", "Лицевая")}${side("back", "Оборотная")}</div>` };
+    }
+    const W = Math.min(sw * 0.62, 460), H = W * 50 / 90;
     return {
       bg: "bg-desk",
       html: `<div class="pv-cards" style="width:${W}px;height:${H}px">

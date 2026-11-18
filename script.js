@@ -137,6 +137,7 @@ function renderConfig() {
   if (p.qty && p.qty.presets) {
     html += `<div class="chips chips--sm">${p.qty.presets.map((n) => `<button type="button" class="chip-btn" data-qty-preset="${n}">${n} ${p.qty.unit}</button>`).join("")}</div>`;
   }
+  if (p.id === "cards") html += `<div class="field" data-sides-wrap><span>Макеты сторон</span><div class="sides-up" data-sides></div></div>`;
   const cfg = $("[data-config]");
   cfg.innerHTML = html;
   cfg.classList.remove("is-in"); void cfg.offsetWidth; cfg.classList.add("is-in");
@@ -174,12 +175,21 @@ form.addEventListener("input", (e) => { if (["desc", "name", "city"].includes(e.
 const drop = $("[data-drop]"), fileInput = $('input[type="file"]', drop), filesList = $("[data-files]");
 const MAX_FILES = 6;
 
+let pendingSide = null; // «лицевая» или «оборотная», если файл выбирают из слота визитки
 function addFiles(list) {
+  const side = pendingSide;
+  pendingSide = null;
   for (const f of list) {
     if (state.files.length >= MAX_FILES) { note(`Можно добавить не более ${MAX_FILES} файлов.`, true); break; }
     if (state.files.some((x) => x.file.name === f.name && x.file.size === f.size)) continue;
     if (f.size > MAX_MB * 1048576) { note(`Файл «${f.name}» больше ${MAX_MB} МБ. Отправьте его в WhatsApp отдельно.`, true); continue; }
     const entry = { file: f, url: isImage(f) ? URL.createObjectURL(f) : null, status: "local", progress: 0, uuid: "" };
+    if (side && isImage(f)) {
+      // новая картинка для стороны заменяет старую
+      const old = state.files.find((x) => x.side === side);
+      if (old) removeEntry(old);
+      entry.side = side;
+    }
     state.files.push(entry);
     if (isImage(f)) state.pic = imgs().length - 1; // показываем только что добавленный
     startUpload(entry);
@@ -240,7 +250,9 @@ const fileStatus = (x) => ({
 
 // страница заказа на нашем сайте: на ней все макеты с кнопками «Скачать»
 function orderPageUrl() {
-  const done = state.files.filter((x) => x.uuid);
+  const order = { front: 0, back: 1 };
+  const done = state.files.filter((x) => x.uuid)
+    .sort((a, b) => (order[a.side] ?? (a.url ? 2 : 3)) - (order[b.side] ?? (b.url ? 2 : 3)));
   if (!done.length) return "";
   // короткая ссылка: только id файлов Google Диска через точку
   const u = new URL("z", location.href);
@@ -257,7 +269,15 @@ function renderFiles() {
       <button type="button" data-remove="${i}" aria-label="Убрать ${esc(x.file.name)}">×</button></li>`;
   }).join("");
 }
+function removeEntry(x) {
+  const i = state.files.indexOf(x);
+  if (i < 0) return;
+  state.files.splice(i, 1);
+  if (x.xhr) x.xhr.abort();
+  if (x.url) URL.revokeObjectURL(x.url);
+}
 fileInput.addEventListener("change", () => { addFiles(fileInput.files); fileInput.value = ""; });
+fileInput.addEventListener("cancel", () => { pendingSide = null; });
 filesList.addEventListener("click", (e) => {
   const b = e.target.closest("[data-remove]"); if (!b) return;
   const [x] = state.files.splice(+b.dataset.remove, 1);
@@ -327,7 +347,28 @@ function needsAddress() {
   if (p.id === "mount") return true;
   return state.opts.mount === "Нужен";
 }
+function renderSides() {
+  const box = $("[data-sides]");
+  if (!box) return;
+  const two = state.opts.sides === "Двусторонние";
+  $("[data-sides-wrap]").hidden = !two;
+  if (!two) return;
+  box.innerHTML = [["front", "Лицевая сторона"], ["back", "Оборотная сторона"]].map(([key, label]) => {
+    const img = sideImg(key);
+    return `<button type="button" class="side-slot${img ? " is-set" : ""}" data-side-upload="${key}">
+      <span class="side-slot__thumb"${img ? ` style="background-image:url('${img.url}')"` : ""}>${img ? "" : "+"}</span>
+      <span><b>${label}</b><small>${img ? "Нажмите, чтобы заменить" : "Загрузить макет"}</small></span>
+    </button>`;
+  }).join("");
+}
+$("[data-config]").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-side-upload]");
+  if (!b) return;
+  pendingSide = b.dataset.sideUpload;
+  fileInput.click();
+});
 function update() {
+  renderSides();
   const showCity = needsAddress();
   $("[data-city-field]").hidden = !showCity;
   $("[data-contact-row]").classList.toggle("field-row--1", !showCity);

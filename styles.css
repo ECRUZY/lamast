@@ -789,3 +789,23 @@ button[type="submit"]:disabled { opacity: .7; cursor: progress; transform: none;
   .crop__bar .seg button { flex: 1; }
   .crop__bar .btn { width: 100%; }
 }
+
+/* двусторонние визитки: две стороны рядом */
+.pv-sides { position: relative; z-index: 1; display: flex; gap: clamp(14px, 3vw, 32px); align-items: center; justify-content: center; flex-wrap: wrap; padding: 0 12px; }
+.pv-side { margin: 0; display: grid; gap: 10px; justify-items: center; }
+.pv-side figcaption { font-size: 13px; font-weight: 600; color: var(--muted); }
+.pv-card--flat { position: relative; inset: auto; transform: none; }
+.pv-side:first-child .pv-card--flat { transform: rotate(-3deg); }
+.pv-side:last-child .pv-card--flat { transform: rotate(2deg); }
+.pv-card--flat .pv-art--empty { font-size: 13px; }
+@media (max-width: 560px) { .pv-sides { gap: 10px; } .pv-side figcaption { font-size: 12px; } }
+
+/* слоты загрузки сторон визитки */
+.sides-up { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side-slot { display: grid; grid-template-columns: 56px 1fr; align-items: center; gap: 12px; padding: 10px; border: 2px dashed #cfd0e3; border-radius: 14px; background: #fff; cursor: pointer; text-align: left; font: inherit; color: inherit; transition: border-color .2s, background-color .2s; }
+.side-slot:hover { border-color: var(--violet); }
+.side-slot.is-set { border-style: solid; border-color: var(--line); }
+.side-slot__thumb { width: 56px; aspect-ratio: 90 / 50; border-radius: 6px; background: var(--mist) center / cover no-repeat; display: grid; place-items: center; color: var(--violet); font-size: 22px; font-weight: 600; }
+.side-slot b { display: block; font-size: 14px; }
+.side-slot small { color: var(--muted); font-size: 12px; }
+@media (max-width: 420px) { .sides-up { grid-template-columns: 1fr; } }
