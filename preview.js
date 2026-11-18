@@ -54,7 +54,7 @@ const PRODUCTS = [
     id: "neon", title: "Неоновые вывески", icon: "neon", view: "neon",
     desc: "Гибкий неон по вашему тексту или рисунку: надписи для кафе, салонов, фотозон и интерьера.",
     options: [
-      { key: "text", label: "Текст вывески", type: "text", placeholder: "Или загрузите рисунок ниже", value: "Love" },
+      { key: "text", label: "Текст вывески", type: "text", placeholder: "Свой текст или загрузите рисунок ниже", value: "" },
       { key: "color", label: "Цвет неона", values: ["Тёплый белый", "Холодный белый", "Розовый", "Красный", "Синий", "Голубой", "Зелёный", "Жёлтый", "Фиолетовый", "RGB"] },
       { key: "font", label: "Шрифт надписи", values: ["Рукописный", "Печатный"] },
       { key: "base", label: "Основа", values: ["Акрил по контуру", "Прямоугольный акрил", "Чёрный акрил", "Без основы"] },
@@ -183,6 +183,25 @@ const NEON_COLORS = {
   "Тёплый белый": "#FFC98A", "Холодный белый": "#CFE3FF", "Розовый": "#FF3FD2", "Красный": "#FF2B3A", "Синий": "#2F6BFF",
   "Голубой": "#2FD3FF", "Зелёный": "#24FF74", "Жёлтый": "#FFDD2E", "Фиолетовый": "#A54BFF", "RGB": "#FF3FD2",
 };
+// неоновый волк: показывается, пока клиент не ввёл текст и не загрузил рисунок
+const WOLF = [
+  "M200 348 L156 300 L116 262 L98 196 L104 120 L118 74 L156 132 L200 120 L244 132 L282 74 L296 120 L302 196 L284 262 L244 300 Z",
+  "M124 104 L144 146", "M276 104 L256 146",
+  "M168 140 L200 168 L232 140",
+  "M140 206 Q156 196 180 210", "M260 206 Q244 196 220 210",
+  "M200 176 L200 258", "M184 262 L200 280 L216 262 Z", "M200 280 L200 312",
+  "M116 262 L146 248 L134 276", "M284 262 L254 248 L266 276",
+  "M156 300 L176 280", "M244 300 L224 280",
+];
+let wolfUrl = null;
+function wolfArt() {
+  if (wolfUrl) return wolfUrl;
+  const c = document.createElement("canvas"); c.width = 800; c.height = 800;
+  const g = c.getContext("2d");
+  g.scale(2, 2); g.strokeStyle = "#fff"; g.lineWidth = 6; g.lineCap = "round"; g.lineJoin = "round";
+  WOLF.forEach((d) => g.stroke(new Path2D(d)));
+  return (wolfUrl = c.toDataURL("image/png"));
+}
 const neonCache = new Map(); // адрес картинки -> Promise (готовится) | { lines, plate, ratio } | null (не вышло)
 function neonFrom(url) {
   if (neonCache.has(url)) return;
@@ -351,11 +370,13 @@ const VIEWS = {
       const W = Math.round(sw * 0.82), H = Math.round(sh * 0.74);
       return { bg: "bg-neonwall", html: `<i class="neon-floor"></i>` + dims(`<div class="pv-neon"><img class="neon-baked" src="${state.neonBaked}" alt="Неоновая вывеска с макетом клиента" referrerpolicy="no-referrer"></div>`, W, H) };
     }
-    const color = demoMode ? "Розовый" : state.opts.color;
+    const color = demoMode ? "Голубой" : state.opts.color;
     const col = NEON_COLORS[color] || NEON_COLORS["Тёплый белый"];
     const rgb = color === "RGB" ? " is-rgb" : "";
     const base = { "Акрил по контуру": "b-contour", "Прямоугольный акрил": "b-rect", "Чёрный акрил": "b-black", "Без основы": "b-none" }[state.opts.base] || "b-contour";
-    const img = demoMode ? null : firstImg();
+    const typed = (state.opts.text || "").trim();
+    // свой рисунок клиента; без рисунка и без текста — неоновый волк для примера
+    const img = (demoMode ? null : firstImg()) || (!typed || demoMode ? { url: wolfArt() } : null);
     if (img) {
       if (!neonCache.has(img.url)) neonFrom(img.url);
       const r = neonCache.get(img.url);

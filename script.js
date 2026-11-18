@@ -621,7 +621,7 @@ function replaceFile(entry, file, url) {
 $("[data-crop-open]").addEventListener("click", openCrop);
 
 // неон из рисунка готовится в фоне: когда готов, перерисовываем предпросмотр
-window.onNeonReady = () => renderStage();
+window.onNeonReady = () => { renderStage(); renderScenes(); };
 
 /* старт */
 selectProduct(PRODUCTS[0].id);
