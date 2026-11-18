@@ -173,7 +173,7 @@ const prettySize = (b) => (b > 1048576 ? (b / 1048576).toFixed(1) + " МБ" : Ma
 
 /* ---------- nav ---------- */
 (function nav() {
-  const navEl = $(".nav"), burger = $(".nav__burger"), fab = $(".fab"), brief = $("#brief");
+  const navEl = $(".nav"), burger = $(".nav__burger"), fab = $(".fab");
   const onScroll = () => navEl.classList.toggle("is-solid", scrollY > 40);
   onScroll(); addEventListener("scroll", onScroll, { passive: true });
   burger.addEventListener("click", () => {
@@ -181,8 +181,8 @@ const prettySize = (b) => (b > 1048576 ? (b / 1048576).toFixed(1) + " МБ" : Ma
     burger.setAttribute("aria-expanded", open);
   });
   $$(".nav__links a").forEach((a) => a.addEventListener("click", () => { navEl.classList.remove("is-menu"); burger.setAttribute("aria-expanded", "false"); }));
-  // прячем плавающую кнопку, когда форма на экране
-  new IntersectionObserver(([e]) => fab.classList.toggle("is-hidden", e.isIntersecting), { threshold: 0.15 }).observe(brief);
+  // плавающая кнопка ведёт в WhatsApp: номер и приветствие берём из CONFIG
+  fab.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Здравствуйте! Пишу с сайта Lamast.")}`;
 })();
 
 /* ---------- hero: буквы включаются по одной ---------- */
