@@ -809,3 +809,12 @@ button[type="submit"]:disabled { opacity: .7; cursor: progress; transform: none;
 .side-slot b { display: block; font-size: 14px; }
 .side-slot small { color: var(--muted); font-size: 12px; }
 @media (max-width: 420px) { .sides-up { grid-template-columns: 1fr; } }
+/* телефон: кнопки под предпросмотром в одну строку и не закрывают изделие */
+@media (max-width: 560px) {
+  .stage__tools { gap: 6px; flex-wrap: nowrap; }
+  .seg { padding: 3px; }
+  .seg button { padding: 7px 10px; font-size: 12px; }
+  .stage__replace { padding: 8px 11px; font-size: 12px; }
+  .stage__pics button { width: 32px; height: 32px; }
+  .stage-wrap .dim--w { display: none; }
+}
