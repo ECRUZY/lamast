@@ -742,3 +742,6 @@ kbd { font: 600 12px/1 var(--text); padding: 3px 6px; border-radius: 5px; backgr
   .cat--mount .cat__scene, .cat--mount .cat__body { width: 100%; }
 }
 .cat .cat__scene { border-radius: 0; }
+
+/* атрибут hidden должен побеждать display у полей */
+[hidden] { display: none !important; }

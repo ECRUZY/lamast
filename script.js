@@ -554,7 +554,7 @@ function buildMessage() {
   });
   if (p.size && (state.w || state.h)) L.push(`• Размер: ${fmt(state.w)} × ${fmt(state.h)} ${p.size.unit}`);
   if (p.qty && state.qty) L.push(`• Тираж: ${state.qty} ${p.qty.unit}`);
-  const city = form.city.value.trim();
+  const city = needsAddress() ? form.city.value.trim() : "";
   if (city) L.push(`• Адрес: ${city}`);
   const desc = form.desc.value.trim();
   if (desc) L.push("", desc);
@@ -565,7 +565,16 @@ function buildMessage() {
 }
 
 const stageWrap = $(".stage-wrap"), stageTools = $("[data-stage-tools]"), stagePics = $("[data-stage-pics]");
+// адрес объекта нужен только там, где есть монтаж
+function needsAddress() {
+  const p = product();
+  if (p.id === "mount") return true;
+  return state.opts.mount === "Нужен";
+}
 function update() {
+  const showCity = needsAddress();
+  $("[data-city-field]").hidden = !showCity;
+  $("[data-contact-row]").classList.toggle("field-row--1", !showCity);
   renderStage();
   const list = imgs();
   const has = list.length > 0;
