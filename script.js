@@ -4,6 +4,7 @@ const CONFIG = window.CONFIG; // настройки в config.js
 /* ---------- контакты из CONFIG ---------- */
 (function applyConfig() {
   $$('[data-cfg="phone"], [data-cfg="phone2"]').forEach((a) => { a.textContent = CONFIG.phoneLabel; a.href = `tel:${CONFIG.phoneTel}`; });
+  $$('[data-cfg="wa"]').forEach((a) => { a.textContent = CONFIG.whatsappLabel; a.href = `https://wa.me/${CONFIG.whatsapp}`; });
   const addr = $('[data-cfg="address"]');
   if (addr) { addr.textContent = CONFIG.address; addr.href = "https://yandex.ru/maps/?text=" + encodeURIComponent(CONFIG.address); }
   const fd = $('[data-cfg="founded"]'); if (fd && CONFIG.founded) fd.textContent = `с ${CONFIG.founded} года`;
