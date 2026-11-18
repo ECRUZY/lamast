@@ -1,14 +1,4 @@
-/* ==========================================================
-   НАСТРОЙКИ — заменить на реальные данные
-   ========================================================== */
-const CONFIG = {
-  whatsapp: "79659400066",          // номер WhatsApp без +, пробелов и скобок
-  phoneLabel: "+7 965 940-00-66",   // как показывать номер на сайте
-  phoneTel: "+79659400066",
-  address: "Грозный, ул. Краснофлотская, 7А",
-  founded: "2016",
-  instagram: "https://instagram.com/lamast_095",
-};
+const CONFIG = window.CONFIG; // настройки в config.js
 
 /* ==========================================================
    Каталог: из него строятся и список услуг, и конструктор.
@@ -340,17 +330,83 @@ function addFiles(list) {
   for (const f of list) {
     if (state.files.length >= MAX_FILES) { note(`Можно добавить не более ${MAX_FILES} файлов.`, true); break; }
     if (state.files.some((x) => x.file.name === f.name && x.file.size === f.size)) continue;
-    state.files.push({ file: f, url: isImage(f) ? URL.createObjectURL(f) : null });
+    if (f.size > MAX_MB * 1048576) { note(`Файл «${f.name}» больше ${MAX_MB} МБ. Отправьте его в WhatsApp отдельно.`, true); continue; }
+    const entry = { file: f, url: isImage(f) ? URL.createObjectURL(f) : null, status: "local", progress: 0, uuid: "" };
+    state.files.push(entry);
     if (isImage(f)) state.pic = imgs().length - 1; // показываем только что добавленный
+    startUpload(entry);
   }
   renderFiles(); update();
+}
+
+/* загрузка в Google Диск (через Google-скрипт) сразу после выбора, чтобы к отправке ссылка была готова */
+const MAX_MB = 35;
+const uploadOn = () => !!CONFIG.driveUploadUrl;
+const readBase64 = (file) => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(",")[1] || "");
+  r.onerror = rej;
+  r.readAsDataURL(file);
+});
+function startUpload(entry) {
+  entry.done = Promise.resolve();
+  if (!uploadOn()) return;
+  entry.status = "uploading";
+  entry.done = new Promise(async (resolve) => {
+    const finish = (ok) => {
+      entry.status = ok ? "done" : "error";
+      entry.xhr = null;
+      renderFiles(); update();
+      resolve();
+    };
+    let data;
+    try { data = await readBase64(entry.file); } catch { return finish(false); }
+    if (!state.files.includes(entry)) return resolve(); // файл убрали, пока читали
+    // Обычный fetch с text/plain: браузер не шлёт проверочный OPTIONS, на который Google-скрипт не отвечает.
+    // По той же причине нельзя следить за процентами отправки: показываем бегущую полосу.
+    const ctrl = new AbortController();
+    entry.xhr = ctrl;
+    let r = {}, ok = false;
+    try {
+      const res = await fetch(CONFIG.driveUploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ name: entry.file.name, type: entry.file.type, data, product: product().title }),
+        signal: ctrl.signal,
+      });
+      r = await res.json();
+      ok = res.ok && r.ok && /^[\w-]{20,}$/.test(r.id || "");
+    } catch (err) {
+      if (err.name === "AbortError") return resolve();
+    }
+    if (ok) entry.uuid = r.id;
+    finish(ok);
+  });
+}
+const fileStatus = (x) => ({
+  uploading: "Загружается…",
+  done: "Загружен",
+  error: "Не загрузился, отправьте файл в WhatsApp отдельно",
+  local: prettySize(x.file.size),
+}[x.status]);
+
+// страница заказа на нашем сайте: на ней все макеты с кнопками «Скачать»
+function orderPageUrl() {
+  const done = state.files.filter((x) => x.uuid);
+  if (!done.length) return "";
+  const f = done.map((x) => x.uuid + "~" + encodeURIComponent(x.file.name)).join(",");
+  const u = new URL("zakaz.html", location.href);
+  u.search = "";
+  u.hash = "";
+  return `${u.href}?f=${f}&p=${encodeURIComponent(product().title)}`;
 }
 
 function renderFiles() {
   filesList.innerHTML = state.files.map((x, i) => {
     const ext = (x.file.name.split(".").pop() || "файл").slice(0, 4).toUpperCase();
     const thumb = x.url ? `<img class="thumb" src="${x.url}" alt="">` : `<span class="thumb">${esc(ext)}</span>`;
-    return `<li>${thumb}<span class="meta"><b>${esc(x.file.name)}</b><small>${prettySize(x.file.size)}</small></span>
+    return `<li class="is-${x.status}">${thumb}<span class="meta"><b>${esc(x.file.name)}</b><small data-status="${i}">${esc(fileStatus(x))}</small>
+      ${x.status === "uploading" ? `<span class="bar bar--run"></span>` : ""}</span>
       <button type="button" data-remove="${i}" aria-label="Убрать ${esc(x.file.name)}">×</button></li>`;
   }).join("");
 }
@@ -358,6 +414,7 @@ fileInput.addEventListener("change", () => { addFiles(fileInput.files); fileInpu
 filesList.addEventListener("click", (e) => {
   const b = e.target.closest("[data-remove]"); if (!b) return;
   const [x] = state.files.splice(+b.dataset.remove, 1);
+  if (x.xhr) x.xhr.abort(); // AbortController
   if (x.url) URL.revokeObjectURL(x.url);
   renderFiles(); update();
 });
@@ -558,7 +615,10 @@ function buildMessage() {
   if (city) L.push(`• Адрес: ${city}`);
   const desc = form.desc.value.trim();
   if (desc) L.push("", desc);
-  if (state.files.length) L.push("", `📎 Макет: ${state.files.map((x) => x.file.name).join(", ")}`);
+  const page = orderPageUrl();
+  const notUploaded = state.files.filter((x) => !x.uuid);
+  if (page) L.push("", `📎 Макет: ${page}`);
+  if (notUploaded.length) L.push("", `📎 ${page ? "Ещё файлы" : "Макет"}: ${notUploaded.map((x) => x.file.name).join(", ")}`);
   const name = form.name.value.trim();
   if (name) L.push("", `${name}`);
   return L.join("\n");
@@ -605,9 +665,25 @@ function note(msg, err) { noteEl.textContent = msg; noteEl.classList.toggle("is-
 
 /* ---------- отправка в WhatsApp ---------- */
 const waUrl = () => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(buildMessage())}`;
-form.addEventListener("submit", (e) => {
+const submitBtn = $('button[type="submit"]', form);
+const submitHTML = submitBtn.innerHTML;
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (!window.open(waUrl(), "_blank", "noopener")) location.href = waUrl();
+  const pending = state.files.filter((x) => x.status === "uploading");
+  if (!pending.length) {
+    if (!window.open(waUrl(), "_blank", "noopener")) location.href = waUrl();
+    return;
+  }
+  // окно открываем сразу (иначе браузер его заблокирует), адрес подставим, когда файлы загрузятся
+  const win = window.open("", "_blank");
+  if (win) win.opener = null;
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Загружаем макет…";
+  await Promise.all(pending.map((x) => x.done));
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = submitHTML;
+  if (win) win.location.href = waUrl();
+  else location.href = waUrl();
 });
 
 /* старт */

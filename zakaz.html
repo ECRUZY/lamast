@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Макеты заказа | Lamast</title>
+  <meta name="theme-color" content="#140F2E">
+  <link rel="icon" href="assets/logo-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@600;700&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background: var(--mist); }
+    .order-top { background: var(--night); color: #fff; padding: 22px 0; }
+    .order-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .order { padding: 48px 0 80px; }
+    .order h1 { font-size: clamp(30px, 4vw, 48px); font-weight: 700; margin-bottom: 8px; }
+    .order__sub { color: var(--muted); margin-bottom: 32px; }
+    .order__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+    .file { background: #fff; border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; }
+    .file__view { aspect-ratio: 4 / 3; background: #fff repeating-conic-gradient(#f1f2fa 0 25%, #fff 0 50%) 0 0 / 22px 22px; display: grid; place-items: center; }
+    .file__view img { width: 100%; height: 100%; object-fit: contain; }
+    .file__ext { font: 700 40px/1 var(--display); color: var(--violet); }
+    .file__body { padding: 16px 18px 18px; display: grid; gap: 12px; }
+    .file__name { font-weight: 600; overflow-wrap: anywhere; }
+    .file__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .file__actions .btn { min-height: 44px; padding: 0 18px; font-size: 15px; }
+    .btn--light { --bg: var(--mist); --fg: var(--ink); }
+    .order__empty { background: #fff; border-radius: var(--r-lg); padding: 32px; max-width: 560px; }
+  </style>
+</head>
+<body>
+  <header class="order-top">
+    <div class="wrap">
+      <a class="brand brand--light" href="./"><img src="assets/logo-mark.svg" alt="" width="30" height="30"><span>lamast</span></a>
+      <a class="btn btn--wa btn--sm" data-wa href="#" target="_blank" rel="noopener">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </header>
+
+  <main class="order">
+    <div class="wrap">
+      <h1>Макеты заказа</h1>
+      <p class="order__sub" data-product></p>
+      <div class="order__grid" data-files></div>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const imageExt = /\.(jpe?g|png|webp|gif|avif|heic|svg)$/i;
+
+      document.querySelector("[data-wa]").href = "https://wa.me/" + CONFIG.whatsapp;
+      const product = params.get("p");
+      document.querySelector("[data-product]").textContent = product ? "Изделие: " + product : "";
+
+      // f = id~имя,id~имя ; берём только корректные идентификаторы файлов Google Диска
+      const files = (params.get("f") || "").split(",").map((part) => {
+        const [uuid, name = ""] = part.split("~");
+        let fileName = "";
+        try { fileName = decodeURIComponent(name); } catch (e) { fileName = name; }
+        return { uuid, name: fileName || "макет" };
+      }).filter((x) => /^[\w-]{20,}$/.test(x.uuid));
+
+      const root = document.querySelector("[data-files]");
+      if (!files.length) {
+        root.outerHTML = '<p class="order__empty">Ссылка на макеты неполная или устарела. Напишите нам в WhatsApp, и мы пришлём макет заново.</p>';
+        return;
+      }
+
+      root.innerHTML = files.map((x) => {
+        const id = encodeURIComponent(x.uuid);
+        const isImg = imageExt.test(x.name);
+        const ext = (x.name.split(".").pop() || "файл").slice(0, 4).toUpperCase();
+        const view = isImg
+          ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w1600" alt="${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer">`
+          : `<span class="file__ext">${esc(ext)}</span>`;
+        return `<article class="file">
+          <div class="file__view">${view}</div>
+          <div class="file__body">
+            <div class="file__name">${esc(x.name)}</div>
+            <div class="file__actions">
+              <a class="btn btn--dark" href="https://drive.google.com/uc?export=download&id=${id}">Скачать</a>
+              <a class="btn btn--light" href="https://drive.google.com/file/d/${id}/view" target="_blank" rel="noopener">Открыть на Диске</a>
+            </div>
+          </div>
+        </article>`;
+      }).join("");
+    })();
+  </script>
+</body>
+</html>
