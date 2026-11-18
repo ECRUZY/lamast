@@ -51,6 +51,18 @@ const PRODUCTS = [
     size: { unit: "см", w: 300, h: 50, wLabel: "Длина вывески", hLabel: "Высота букв" },
   },
   {
+    id: "neon", title: "Неоновые вывески", icon: "neon", view: "neon",
+    desc: "Гибкий неон по вашему тексту или рисунку: надписи для кафе, салонов, фотозон и интерьера.",
+    options: [
+      { key: "text", label: "Текст вывески", type: "text", placeholder: "Или загрузите рисунок ниже", value: "Love" },
+      { key: "color", label: "Цвет неона", values: ["Тёплый белый", "Холодный белый", "Розовый", "Красный", "Синий", "Голубой", "Зелёный", "Жёлтый", "Фиолетовый", "RGB"] },
+      { key: "font", label: "Шрифт надписи", values: ["Рукописный", "Печатный"] },
+      { key: "base", label: "Основа", values: ["Акрил по контуру", "Прямоугольный акрил", "Чёрный акрил", "Без основы"] },
+      { key: "mount", label: "Монтаж", values: ["Нужен", "Не нужен"] },
+    ],
+    size: { unit: "см", w: 100, h: 50 },
+  },
+  {
     id: "lightbox", title: "Световые короба", icon: "lightbox", view: "lightbox",
     desc: "Односторонние и двусторонние световые короба прямоугольной и круглой формы.",
     options: [
@@ -128,6 +140,7 @@ const PRODUCTS = [
 ];
 
 const ICONS = {
+  neon: '<path d="M3 16c2-7 4-10 5.5-10S9 14 11 14s2.5-7 4.5-7S17 13 21 12"/><path d="M5 20h14"/>',
   sticker: '<path d="M20 12v1a8 8 0 1 1-8-8h1"/><path d="M13 5c0 4 2 6 7 7"/><path d="M13 5h1a6 6 0 0 1 6 6v1"/>',
   banner: '<rect x="3" y="5" width="18" height="11" rx="1"/><circle cx="5.5" cy="7.5" r=".6"/><circle cx="18.5" cy="7.5" r=".6"/><circle cx="5.5" cy="13.5" r=".6"/><circle cx="18.5" cy="13.5" r=".6"/><path d="M7 16v4M17 16v4"/>',
   film: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 4l7 7M14 20l7-7"/><path d="M12 4v16"/>',
@@ -164,6 +177,71 @@ const DEMO_ART = {
   sticker: "", banner: "СКИДКИ 30%", film: "ОТКРЫТО", lightbox: "АПТЕКА", sign: "14",
   mobile: "", interior: "", photozone: "С днём свадьбы", cards: "", holders: "", mount: "ПРОДУКТЫ",
 };
+
+/* ---------- неон: из картинки клиента делаем светящиеся линии и акрил по контуру ---------- */
+const NEON_COLORS = {
+  "Тёплый белый": "#FFC98A", "Холодный белый": "#CFE3FF", "Розовый": "#FF3FD2", "Красный": "#FF2B3A", "Синий": "#2F6BFF",
+  "Голубой": "#2FD3FF", "Зелёный": "#24FF74", "Жёлтый": "#FFDD2E", "Фиолетовый": "#A54BFF", "RGB": "#FF3FD2",
+};
+const neonCache = new Map(); // адрес картинки -> Promise (готовится) | { lines, plate, ratio } | null (не вышло)
+function neonFrom(url) {
+  if (neonCache.has(url)) return;
+  const job = (async () => {
+    // картинку грузим с разрешением CORS; если сервер временно отказал (например, Google 429), пробуем ещё раз
+    const load = () => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const img = await load().catch(() => new Promise((r) => setTimeout(r, 2500)).then(load));
+    const k = Math.min(1, 900 / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+    const m = document.createElement("canvas"); m.width = w; m.height = h;
+    const mg = m.getContext("2d", { willReadFrequently: true });
+    mg.drawImage(img, 0, 0, w, h);
+    const d = mg.getImageData(0, 0, w, h), px = d.data;
+    // PNG с прозрачным фоном: линии — это непрозрачные пиксели.
+    // Иначе линии — то, что заметно отличается по яркости от фона (берём фон по краям картинки).
+    let clear = 0;
+    for (let i = 3; i < px.length; i += 4) if (px[i] < 245) clear++;
+    const useAlpha = clear / (w * h) > 0.03;
+    const lum = (i) => (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255;
+    let bg = 0;
+    if (!useAlpha) {
+      const edge = [];
+      for (let x = 0; x < w; x += 4) { edge.push(lum(x * 4), lum(((h - 1) * w + x) * 4)); }
+      for (let y = 0; y < h; y += 4) { edge.push(lum(y * w * 4), lum((y * w + w - 1) * 4)); }
+      edge.sort((a, b) => a - b);
+      bg = edge[Math.floor(edge.length / 2)];
+    }
+    for (let i = 0; i < px.length; i += 4) {
+      const a = useAlpha ? px[i + 3] : Math.max(0, Math.min(255, ((Math.abs(lum(i) - bg) - 0.12) / 0.25) * 255));
+      px[i] = px[i + 1] = px[i + 2] = 255; px[i + 3] = a;
+    }
+    mg.putImageData(d, 0, 0);
+    // обрезаем пустые поля вокруг линий, чтобы неон занимал всю сцену
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (px[(y * w + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) throw new Error("на картинке не нашлось линий");
+    const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+    // поля вокруг рисунка, чтобы свечение и акрил не обрезались
+    const pad = Math.round(Math.max(cw, ch) * 0.08), W = cw + pad * 2, H = ch + pad * 2;
+    const L = document.createElement("canvas"); L.width = W; L.height = H;
+    L.getContext("2d").drawImage(m, x0, y0, cw, ch, pad, pad, cw, ch);
+    // акрил по контуру: рисунок «раздуваем» во все стороны и заливаем
+    const Pc = document.createElement("canvas"); Pc.width = W; Pc.height = H;
+    const pg = Pc.getContext("2d", { willReadFrequently: true });
+    const r = pad * 0.75;
+    const stamp = (dx, dy) => pg.drawImage(m, x0, y0, cw, ch, pad + dx, pad + dy, cw, ch);
+    for (let s = 0; s < 24; s++) { const t = (s / 24) * Math.PI * 2; stamp(Math.cos(t) * r, Math.sin(t) * r); }
+    for (let s = 0; s < 12; s++) { const t = (s / 12) * Math.PI * 2; stamp(Math.cos(t) * r * 0.5, Math.sin(t) * r * 0.5); }
+    const pd = pg.getImageData(0, 0, W, H), pp = pd.data;
+    for (let i = 0; i < pp.length; i += 4) { pp[i] = pp[i + 1] = pp[i + 2] = 255; pp[i + 3] = pp[i + 3] > 24 ? 255 : 0; }
+    pg.putImageData(pd, 0, 0);
+    return { lines: L.toDataURL("image/png"), plate: Pc.toDataURL("image/png"), ratio: W / H };
+  })();
+  neonCache.set(url, job);
+  job.then((r) => neonCache.set(url, r), () => neonCache.set(url, null))
+    .then(() => { if (typeof window.onNeonReady === "function") window.onNeonReady(); });
+}
 function artHTML(extra = "", entry) {
   const img = demoMode ? null : entry !== undefined ? entry : firstImg();
   return img
@@ -245,6 +323,39 @@ const VIEWS = {
         <span style="font-size:${Math.round(fs)}px">${esc(text)}</span>
         ${state.h ? `<span class="dim dim--h">${fmt(state.h)} см</span>` : ""}
         ${state.w ? `<span class="dim dim--w">${fmt(state.w)} см</span>` : ""}
+      </div>`,
+    };
+  },
+  neon(sw, sh) {
+    // страница заказа: готовый неон, «запечённый» конструктором при отправке
+    if (!demoMode && state.neonBaked) {
+      const W = Math.round(sw * 0.82), H = Math.round(sh * 0.74);
+      return { bg: "bg-night", html: dims(`<div class="pv-neon"><img class="neon-baked" src="${state.neonBaked}" alt="Неоновая вывеска с макетом клиента" referrerpolicy="no-referrer"></div>`, W, H) };
+    }
+    const color = demoMode ? "Розовый" : state.opts.color;
+    const col = NEON_COLORS[color] || NEON_COLORS["Тёплый белый"];
+    const rgb = color === "RGB" ? " is-rgb" : "";
+    const base = { "Акрил по контуру": "b-contour", "Прямоугольный акрил": "b-rect", "Чёрный акрил": "b-black", "Без основы": "b-none" }[state.opts.base] || "b-contour";
+    const img = demoMode ? null : firstImg();
+    if (img) {
+      if (!neonCache.has(img.url)) neonFrom(img.url);
+      const r = neonCache.get(img.url);
+      if (r instanceof Promise) return { bg: "bg-night", html: `<div class="pv-neon-wait">Превращаем рисунок в неон…</div>` };
+      const ratio = r ? r.ratio : 1.4;
+      const { W, H } = fit(ratio, 1, sw * 0.8, sh * 0.72);
+      const inner = r
+        ? `${base === "b-contour" ? `<img class="neon-plate" src="${r.plate}" alt="">` : ""}<img class="neon-lines" src="${r.lines}" alt="">`
+        : `<img class="neon-lines neon-raw" src="${img.alt || img.url}" alt="">`;
+      return { bg: "bg-night", html: dims(`<div class="pv-neon ${base}${rgb}" style="--neon:${col}">${inner}</div>`, W, H) };
+    }
+    const text = (state.opts.text || "").trim() || "Ваш текст";
+    const script = state.opts.font !== "Печатный";
+    const fs = Math.max(20, Math.min(sh * 0.34, (sw * 0.78) / (Math.max(3, [...text].length) * (script ? 0.48 : 0.62))));
+    return {
+      bg: "bg-night",
+      html: `<div class="pv-neon pv-neon--text ${base}${rgb}${script ? " is-script" : ""}" style="--neon:${col}; font-size:${Math.round(fs)}px">
+        <span class="neon-plate-t" aria-hidden="true">${esc(text)}</span><span class="neon-t">${esc(text)}</span>
+        ${state.w && state.h && !demoMode ? `<span class="dim dim--w">${fmt(state.w)} × ${fmt(state.h)} см</span>` : ""}
       </div>`,
     };
   },
@@ -361,4 +472,20 @@ function applyOrderCode(code, text) {
   state.h = h || (p.size ? p.size.h : 0);
   state.qty = num(qty) || (p.qty ? p.qty.value : 0);
   return true;
+}
+
+// готовый неон одной картинкой: акрил по контуру и светящиеся линии нужного цвета (для страницы заказа)
+async function bakeNeon(r, color, contour) {
+  const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  const [lines, plate] = await Promise.all([load(r.lines), load(r.plate)]);
+  const W = lines.naturalWidth, H = lines.naturalHeight, k = Math.max(W, H) / 900;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  if (contour) { g.globalAlpha = 0.16; g.drawImage(plate, 0, 0); g.globalAlpha = 1; }
+  const col = NEON_COLORS[color] || NEON_COLORS["Тёплый белый"];
+  g.shadowColor = col;
+  [60, 36, 20, 10, 4].forEach((b) => { g.shadowBlur = b * k; g.drawImage(lines, 0, 0); g.drawImage(lines, 0, 0); });
+  g.shadowBlur = 0;
+  g.drawImage(lines, 0, 0);
+  return new Promise((res) => c.toBlob(res, "image/png"));
 }

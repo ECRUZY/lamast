@@ -9,8 +9,8 @@
   <link rel="icon" href="assets/logo-mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@600;700;800&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=202611181216">
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600;700;800&family=Onest:wght@400;500;600&family=Marck+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=202611181550">
   <style>
     body { background: var(--mist); }
     .order-top { background: var(--night); color: #fff; padding: 18px 0; }
@@ -70,13 +70,16 @@
     </div>
   </main>
 
-  <script src="config.js?v=202611181216"></script>
-  <script src="preview.js?v=202611181216"></script>
+  <script src="config.js?v=202611181550"></script>
+  <script src="preview.js?v=202611181550"></script>
   <script>
     (function () {
       document.querySelector("[data-wa]").href = "https://wa.me/" + CONFIG.whatsapp;
       const params = new URLSearchParams(location.search);
+      // прямой адрес картинки Google Диска: отдаёт разрешение CORS, поэтому неон можно собрать из макета
       const thumb = (id, w) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}`;
+      // прямой адрес с разрешением CORS: нужен только чтобы собрать неон из рисунка прямо на странице
+      const thumbCors = (id, w) => `https://lh3.googleusercontent.com/d/${encodeURIComponent(id)}=w${w}`;
 
       // Ссылка вида z?ID.ID&c=код_заказа[&t=текст]. Старые ссылки: z.html?f=ID~имя,ID~имя&p=изделие.
       let raw = [];
@@ -100,12 +103,18 @@
 
       // изделие с макетом, как в конструкторе
       const hasOrder = applyOrderCode(params.get("c"), params.get("t"));
+      // готовый неон из конструктора (параметр n): показываем его как обычную картинку
+      const neonId = params.get("n");
+      if (hasOrder && state.id === "neon" && /^[\w-]{20,}$/.test(neonId || "")) {
+        state.neonBaked = `https://drive.google.com/thumbnail?id=${encodeURIComponent(neonId)}&sz=w1600`;
+      }
       if (hasOrder) {
         // все макеты заказа; у визиток первый — лицевая сторона, второй — оборотная
         if (state.id === "cards" && state.opts.sides === "Двусторонние") {
           ["Лицевая сторона", "Оборотная сторона"].forEach((label, i) => { if (files[i] && /^Макет( \d+)?$/.test(files[i].name)) files[i].name = label; });
         }
-        state.files = files.map((x, i) => ({ url: thumb(x.uuid, 1600), file: { name: x.name }, side: state.id === "cards" ? (i === 0 ? "front" : i === 1 ? "back" : undefined) : undefined }));
+        const neonLive = state.id === "neon" && !state.neonBaked;
+        state.files = files.map((x, i) => ({ url: neonLive ? thumbCors(x.uuid, 1600) : thumb(x.uuid, 1600), alt: thumb(x.uuid, 1600), file: { name: x.name }, side: state.id === "cards" ? (i === 0 ? "front" : i === 1 ? "back" : undefined) : undefined }));
         state.pic = 0;
         const p = product();
         const card = document.querySelector("[data-preview]");
@@ -121,6 +130,7 @@
           stage.className = "stage " + bg;
           stage.innerHTML = html;
         };
+        window.onNeonReady = draw;
         draw();
         let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(draw, 120); });
       } else {

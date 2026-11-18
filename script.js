@@ -219,7 +219,7 @@ function startUpload(entry) {
     };
     let data;
     try { data = await readBase64(entry.file); } catch { return finish(false); }
-    if (!state.files.includes(entry)) return resolve(); // файл убрали, пока читали
+    if (!state.files.includes(entry) && !entry.standalone) return resolve(); // файл убрали, пока читали
     // Обычный fetch с text/plain: браузер не шлёт проверочный OPTIONS, на который Google-скрипт не отвечает.
     // По той же причине нельзя следить за процентами отправки: показываем бегущую полосу.
     const ctrl = new AbortController();
@@ -257,7 +257,8 @@ function orderPageUrl() {
   // короткая ссылка: только id файлов Google Диска через точку
   const u = new URL("z", location.href);
   // и код заказа, чтобы на странице заказа нарисовать изделие с макетом, как в конструкторе
-  return `${u.origin}${u.pathname}?${done.map((x) => x.uuid).join(".")}&c=${orderCode()}`;
+  const np = product().id === "neon" && state.neonPreview && state.neonPreview.uuid ? `&n=${state.neonPreview.uuid}` : "";
+  return `${u.origin}${u.pathname}?${done.map((x) => x.uuid).join(".")}&c=${orderCode()}${np}`;
 }
 
 function renderFiles() {
@@ -404,9 +405,28 @@ function note(msg, err) { noteEl.textContent = msg; noteEl.classList.toggle("is-
 const waUrl = () => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(buildMessage())}`;
 const submitBtn = $('button[type="submit"]', form);
 const submitHTML = submitBtn.innerHTML;
+// неон по рисунку: при отправке «запекаем» готовый вид и загружаем его отдельной картинкой для страницы заказа
+function ensureNeonPreview() {
+  if (product().id !== "neon" || !uploadOn()) return null;
+  const img = firstImg();
+  const r = img && neonCache.get(img.url);
+  if (!r || r instanceof Promise) return null;
+  const contour = state.opts.base === "Акрил по контуру";
+  const key = `${img.url}|${state.opts.color}|${contour}`;
+  if (state.neonPreview && state.neonPreview.key === key) return state.neonPreview;
+  const entry = { key, uuid: "", status: "local", progress: 0, standalone: true, url: null };
+  entry.ready = bakeNeon(r, state.opts.color, contour)
+    .then((blob) => { entry.file = new File([blob], "неон-превью.png", { type: "image/png" }); startUpload(entry); return entry.done; })
+    .catch(() => {});
+  state.neonPreview = entry;
+  return entry;
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const pending = state.files.filter((x) => x.status === "uploading");
+  const np = ensureNeonPreview();
+  const pending = state.files.filter((x) => x.status === "uploading").map((x) => x.done);
+  if (np && !np.uuid) pending.push(np.ready);
   if (!pending.length) {
     if (!window.open(waUrl(), "_blank", "noopener")) location.href = waUrl();
     return;
@@ -416,7 +436,7 @@ form.addEventListener("submit", async (e) => {
   if (win) win.opener = null;
   submitBtn.disabled = true;
   submitBtn.textContent = "Загружаем макет…";
-  await Promise.all(pending.map((x) => x.done));
+  await Promise.all(pending);
   submitBtn.disabled = false;
   submitBtn.innerHTML = submitHTML;
   if (win) win.location.href = waUrl();
@@ -599,6 +619,9 @@ function replaceFile(entry, file, url) {
   renderFiles(); update();
 }
 $("[data-crop-open]").addEventListener("click", openCrop);
+
+// неон из рисунка готовится в фоне: когда готов, перерисовываем предпросмотр
+window.onNeonReady = () => renderStage();
 
 /* старт */
 selectProduct(PRODUCTS[0].id);

@@ -166,9 +166,9 @@ p { margin: 0; }
   grid-template-areas:
     "letters letters lightbox banner"
     "letters letters sticker film"
-    "sign mobile interior interior"
-    "photozone photozone cards holders"
-    "mount mount mount mount";
+    "neon neon sign mobile"
+    "interior interior cards holders"
+    "photozone photozone mount mount";
 }
 .cat {
   position: relative; display: flex; flex-direction: column; text-align: left;
@@ -628,7 +628,7 @@ kbd { font: 600 12px/1 var(--text); padding: 3px 6px; border-radius: 5px; backgr
   .catalog {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
-      "letters letters" "lightbox banner" "sticker film" "sign mobile"
+      "letters letters" "neon neon" "lightbox banner" "sticker film" "sign mobile"
       "interior interior" "photozone photozone" "cards holders" "mount mount";
   }
 }
@@ -818,3 +818,28 @@ button[type="submit"]:disabled { opacity: .7; cursor: progress; transform: none;
   .stage__pics button { width: 32px; height: 32px; }
   .stage-wrap .dim--w { display: none; }
 }
+
+/* ---------- неоновые вывески ---------- */
+.cat--neon { grid-area: neon; }
+.pv-neon { position: absolute; inset: 0; }
+.pv-neon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.neon-lines { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 4px var(--neon)) drop-shadow(0 0 12px var(--neon)) drop-shadow(0 0 30px var(--neon)); }
+.neon-raw { mix-blend-mode: screen; }
+.neon-plate { opacity: .14; filter: drop-shadow(0 0 1px rgba(255,255,255,.9)); }
+.pv-neon.b-rect::before, .pv-neon.b-black::before { content: ""; position: absolute; inset: -3%; border-radius: 16px; }
+.pv-neon.b-rect::before { background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.3), 0 20px 40px -24px rgba(0,0,0,.8); }
+.pv-neon.b-black::before { background: linear-gradient(160deg, #1a1824, #08070d); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 24px 44px -20px rgba(0,0,0,.9); }
+.pv-neon.is-rgb { animation: neonHue 6s linear infinite; }
+@keyframes neonHue { to { filter: hue-rotate(360deg); } }
+.pv-neon-wait { position: relative; z-index: 1; color: rgba(255,255,255,.7); font-size: 15px; }
+
+/* неон по тексту */
+.pv-neon--text { position: relative; inset: auto; z-index: 1; display: grid; padding: .3em .5em; line-height: 1.15; white-space: nowrap; font-family: var(--display); font-weight: 400; letter-spacing: .01em; }
+.pv-neon--text.is-script { font-family: "Marck Script", "Segoe Script", cursive; }
+.pv-neon--text > span:not(.dim) { grid-area: 1 / 1; text-align: center; position: relative; }
+.neon-t { color: #fff; text-shadow: 0 0 2px #fff, 0 0 6px var(--neon), 0 0 16px var(--neon), 0 0 34px var(--neon), 0 0 64px var(--neon); }
+.neon-plate-t { color: rgba(255,255,255,.12); -webkit-text-stroke: .34em rgba(255,255,255,.12); paint-order: stroke fill; visibility: hidden; }
+.pv-neon--text.b-contour .neon-plate-t { visibility: visible; }
+.pv-neon--text.b-rect::before, .pv-neon--text.b-black::before { inset: 0; }
+.pv-neon--text .dim--w { bottom: -34px; font-family: var(--text); font-size: 12px; letter-spacing: 0; }
+.neon-baked { object-fit: contain; }
