@@ -858,3 +858,4 @@ button[type="submit"]:disabled { opacity: .7; cursor: progress; transform: none;
 .neon-t { color: color-mix(in srgb, var(--neon) 40%, #fff); text-shadow: 0 0 2px #fff, 0 0 7px var(--neon), 0 0 18px var(--neon), 0 0 40px var(--neon), 0 0 72px var(--neon); }
 .neon-plate-t { color: rgba(255,255,255,.1); -webkit-text-stroke: .34em rgba(255,255,255,.11); }
 .pv-neon--text.b-contour::after { inset: -20%; }
+.about__text .about__services { margin-top: 16px; font-size: 15px; line-height: 1.6; }

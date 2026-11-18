@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+# страницы заказов: там макеты клиентов
+Disallow: /z
+Disallow: /zakaz.html
+Disallow: /_shot.html
+Disallow: /google-drive/
+Disallow: /bump-version.sh
+
+Sitemap: https://ralamast.ru/sitemap.xml
