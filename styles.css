@@ -843,3 +843,18 @@ button[type="submit"]:disabled { opacity: .7; cursor: progress; transform: none;
 .pv-neon--text.b-rect::before, .pv-neon--text.b-black::before { inset: 0; }
 .pv-neon--text .dim--w { bottom: -34px; font-family: var(--text); font-size: 12px; letter-spacing: 0; }
 .neon-baked { object-fit: contain; }
+
+/* неон: сцена как на фото — тёмная стена, пол с отражением, светлая кромка акрила */
+.bg-neonwall { background: radial-gradient(75% 65% at 50% 40%, #2b2522 0%, #151110 60%, #0b0909 100%); }
+.neon-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 18%; background: linear-gradient(180deg, #1c1715, #0d0b0a); border-top: 1px solid rgba(255,255,255,.05); }
+.neon-floor::after { content: ""; position: absolute; inset: 0; background: radial-gradient(55% 90% at 50% 0%, color-mix(in srgb, var(--neon, #FFC98A) 55%, transparent), transparent 75%); opacity: .55; }
+.pv-neon::after { content: ""; position: absolute; inset: -22%; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--neon) 26%, transparent), transparent); }
+.pv-neon.b-none::after, .pv-neon.b-black::after { inset: -15%; }
+.neon-lines { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 5px var(--neon)) drop-shadow(0 0 16px var(--neon)) drop-shadow(0 0 42px var(--neon)); }
+.neon-plate { opacity: .09; }
+.neon-edge { opacity: .8; filter: drop-shadow(0 0 3px var(--neon)) drop-shadow(0 0 10px var(--neon)); }
+/* трубка светится не чисто белым, а с оттенком цвета, как настоящий неон */
+.neon-tint { position: absolute; inset: 0; background: color-mix(in srgb, var(--neon) 50%, #fff); opacity: .85; pointer-events: none; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: center; mask-position: center; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.neon-t { color: color-mix(in srgb, var(--neon) 40%, #fff); text-shadow: 0 0 2px #fff, 0 0 7px var(--neon), 0 0 18px var(--neon), 0 0 40px var(--neon), 0 0 72px var(--neon); }
+.neon-plate-t { color: rgba(255,255,255,.1); -webkit-text-stroke: .34em rgba(255,255,255,.11); }
+.pv-neon--text.b-contour::after { inset: -20%; }
