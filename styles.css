@@ -200,50 +200,12 @@ p { margin: 0; }
 
 /* ---------- works ---------- */
 .works { background: var(--mist); }
-.works__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.work { margin: 0; border-radius: var(--r-lg); overflow: hidden; background: var(--paper); }
-.work--wide { grid-column: span 2; }
-.work__art { aspect-ratio: 4 / 3; position: relative; overflow: hidden; transition: transform .5s ease; }
-.work--wide .work__art { aspect-ratio: auto; height: 100%; min-height: 300px; }
-.work:hover .work__art { transform: scale(1.025); }
-.work { display: flex; flex-direction: column; }
-.work--wide { display: grid; grid-template-rows: 1fr auto; }
-.work figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 18px 22px; font-size: 15px; background: var(--paper); position: relative; z-index: 1; }
+.works__grid { columns: 3 320px; column-gap: 16px; }
+.work { break-inside: avoid; margin: 0 0 16px; border-radius: var(--r-lg); overflow: hidden; background: var(--paper); }
+.work img { display: block; width: 100%; height: auto; transition: transform .5s ease; }
+.work:hover img { transform: scale(1.025); }
+.work figcaption { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 18px; font-size: 15px; background: var(--paper); }
 .work figcaption span { color: var(--muted); text-align: right; }
-
-/* иллюстрации-заглушки */
-.art-letters { background: linear-gradient(#1b1640, #0f0b24); display: grid; place-items: center; }
-.art-letters::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 30px), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 70px); }
-.art-letters span { position: relative; font: 800 clamp(56px, 9vw, 120px)/1 var(--display); color: #fff; letter-spacing: .02em; text-shadow: 0 0 8px #fff, 0 0 30px var(--sky), 0 0 80px var(--sky); }
-.art-letters i { position: absolute; left: 0; right: 0; bottom: 0; height: 26%; background: linear-gradient(transparent, rgba(79,149,238,.18)); }
-
-.art-box { background: linear-gradient(160deg, #cfd3e6, #9aa0bd); display: grid; place-items: center; }
-.art-box .box { width: 62%; aspect-ratio: 2 / 1; border-radius: 10px; background: linear-gradient(#ffffff, #e9fff1); border: 6px solid #2b2f3d; display: grid; place-items: center; box-shadow: 0 0 40px rgba(255,255,255,.8), 0 20px 30px -10px rgba(0,0,0,.4); }
-.art-box .box span { font: 800 clamp(18px, 2.6vw, 30px)/1 var(--display); color: #109c4a; }
-
-.art-rollup { background: linear-gradient(180deg, #ececf5, #d8d9e8); display: grid; place-items: end center; }
-.rollup { width: 32%; height: 86%; position: relative; background: linear-gradient(180deg, var(--violet) 0 52%, #fff 52% 100%); border-radius: 3px 3px 0 0; box-shadow: 0 10px 30px -10px rgba(0,0,0,.35); }
-.rollup i { position: absolute; left: 14%; top: 12%; width: 40%; aspect-ratio: 1; background: url("assets/logo-mark.svg") center / contain no-repeat; filter: brightness(0) invert(1); }
-.rollup b { position: absolute; left: 14%; right: 14%; top: 60%; height: 6px; background: var(--ink); border-radius: 3px; box-shadow: 0 14px 0 #c3c4d6, 0 26px 0 #c3c4d6; }
-.rollup s { position: absolute; left: -12%; right: -12%; bottom: -1px; height: 12px; background: #8c8ea3; border-radius: 4px 4px 0 0; }
-
-.art-banner { background: linear-gradient(180deg, #8ec1ff, #d6e8ff 60%, #b9bccb 60%); display: grid; place-items: center; }
-.banner { width: 74%; aspect-ratio: 3 / 2; background: var(--sky); border: 5px solid #384052; position: relative; display: grid; place-items: center; box-shadow: 0 16px 24px -12px rgba(0,0,0,.4); }
-.banner::before { content: ""; position: absolute; inset: 6px; background: radial-gradient(circle, #fff 2px, transparent 2.5px) 0 0 / 22px 22px; mask: linear-gradient(#000 0 8px, transparent 8px calc(100% - 8px), #000 calc(100% - 8px)); }
-.banner span { font: 800 clamp(18px, 2.4vw, 28px)/1.05 var(--display); color: #fff; text-align: center; }
-
-.art-zone { background: radial-gradient(70% 70% at 50% 40%, #fbe9f1, #e8d6f5); display: grid; place-items: center; }
-.arch { width: 38%; aspect-ratio: 3 / 4; border-radius: 999px 999px 0 0; background: linear-gradient(160deg, var(--violet), var(--sky)); position: absolute; bottom: 0; box-shadow: inset 0 0 0 14px rgba(255,255,255,.25); }
-.art-zone::before, .art-zone::after { content: ""; position: absolute; bottom: 10%; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #f3b5cf 40%, #e58db1); box-shadow: 40px -60px 0 -6px #c9b8ff, -10px -110px 0 -14px #ffd6e6; }
-.art-zone::before { left: 18%; }
-.art-zone::after { right: 18%; transform: scaleX(-1); }
-.zone-text { position: relative; font: 700 clamp(24px, 3.6vw, 44px)/1 var(--display); color: #fff; letter-spacing: -0.02em; margin-top: 20%; }
-
-.art-cards { background: linear-gradient(140deg, #2a2156, var(--night)); }
-.art-cards .card { position: absolute; width: 52%; aspect-ratio: 90 / 50; border-radius: 6px; box-shadow: 0 14px 24px -10px rgba(0,0,0,.6); }
-.art-cards .c1 { left: 14%; top: 22%; background: #fff; transform: rotate(-12deg); }
-.art-cards .c2 { left: 26%; top: 36%; background: var(--violet); transform: rotate(4deg); }
-.art-cards .c3 { left: 34%; top: 48%; background: #fff url("assets/logo-mark.svg") 12% 50% / 22% no-repeat; transform: rotate(-3deg); }
 
 /* ---------- process ---------- */
 .process { background: var(--night); color: #fff; }
@@ -402,8 +364,6 @@ kbd { font: 600 12px/1 var(--text); padding: 3px 6px; border-radius: 5px; backgr
   .hero__facts { grid-template-columns: 1fr; gap: 16px; }
   .hero__facts li { display: flex; align-items: baseline; gap: 12px; }
   .hero__facts b { margin: 0; font-size: 18px; white-space: nowrap; }
-  .works__grid { grid-template-columns: 1fr 1fr; }
-  .work--wide { grid-column: span 2; }
   .contacts__in { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
@@ -413,9 +373,6 @@ kbd { font: 600 12px/1 var(--text); padding: 3px 6px; border-radius: 5px; backgr
   .hero__cta, .hero__cta .btn { width: 100%; }
   .steps { grid-template-columns: 1fr; }
   .steps li::before { margin-bottom: 20px; }
-  .works__grid { grid-template-columns: 1fr; }
-  .work--wide { grid-column: auto; }
-  .work--wide .work__art { min-height: 0; aspect-ratio: 4 / 3; }
   .field-row { grid-template-columns: 1fr; }
   .drop { flex-direction: column; text-align: center; }
   .modal { padding: 28px 22px; }
