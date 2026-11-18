@@ -44,9 +44,10 @@
     </a>
     <nav class="nav__links" aria-label="Разделы">
       <a href="#services">Услуги</a>
+      <a href="#process">Как работаем</a>
+      <a href="#brief">Конструктор</a>
       <a href="#works">Работы</a>
       <a href="#about">О нас</a>
-      <a href="#process">Как работаем</a>
       <a href="#contacts">Контакты</a>
     </nav>
     <a class="nav__phone" data-cfg="phone" href="tel:+79659400066">+7 965 940-00-66</a>
@@ -99,11 +100,109 @@
     <div class="wrap">
       <div class="sec-head">
         <h2>Услуги</h2>
-        <p>Выберите изделие, чтобы перейти к расчёту стоимости.</p>
+        <p>Выберите изделие, чтобы открыть его в конструкторе.</p>
       </div>
 
       <div class="catalog" data-services>
         <!-- карточки строятся из PRODUCTS в script.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ПРОЦЕСС: реальная последовательность, поэтому с номерами -->
+  <section class="process" id="process">
+    <div class="wrap">
+      <div class="sec-head sec-head--light">
+        <h2>Порядок работы</h2>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Заявка</h3>
+          <p>Отправьте макет, фотографию объекта или размеры через форму на сайте или в WhatsApp.</p>
+        </li>
+        <li>
+          <h3>Расчёт и макет</h3>
+          <p>Рассчитываем стоимость и сроки. При необходимости разрабатываем макет и согласовываем его с вами.</p>
+        </li>
+        <li>
+          <h3>Производство</h3>
+          <p>Изготавливаем изделие: печать, плоттерная резка, сборка букв и световых коробов.</p>
+        </li>
+        <li>
+          <h3>Монтаж</h3>
+          <p>Доставляем и устанавливаем конструкцию. При необходимости изготавливаем каркас.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- БРИФ → WHATSAPP: конструктор + предпросмотр -->
+  <section class="brief" id="brief">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Примерьте свой макет</h2>
+        <p>Выберите изделие и параметры, загрузите макет и посмотрите, как он будет выглядеть. Заявка будет отправлена нам в WhatsApp.</p>
+      </div>
+      <div class="brief__in">
+        <form id="briefForm" class="brief__form" novalidate>
+          <fieldset class="field">
+            <legend>Изделие</legend>
+            <div class="products" data-products></div>
+          </fieldset>
+
+          <div class="config" data-config></div>
+
+          <div class="field">
+            <span id="dropLabel">Макет или фото</span>
+            <label class="drop" data-drop>
+              <input type="file" name="files" multiple accept="image/*,.pdf,.ai,.cdr,.eps,.psd,.svg,.tif,.tiff,.zip" aria-labelledby="dropLabel">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+              <span><b>Перетащите файл</b> или выберите на устройстве. JPG, PNG, PDF, AI, CDR</span>
+            </label>
+            <ul class="files" data-files></ul>
+          </div>
+
+          <label class="field">
+            <span>Комментарий</span>
+            <textarea name="desc" rows="3" placeholder="Место размещения, цвета, желаемые сроки"></textarea>
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span>Адрес объекта</span>
+              <input name="city" type="text" value="Грозный" placeholder="Город, улица" autocomplete="address-level2">
+            </label>
+            <label class="field">
+              <span>Ваше имя</span>
+              <input name="name" type="text" placeholder="Имя" autocomplete="given-name">
+            </label>
+          </div>
+
+          <button class="btn btn--wa btn--lg" type="submit">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-wa"/></svg>
+            Отправить заявку в WhatsApp
+          </button>
+          <p class="form-note" data-note role="status" aria-live="polite"></p>
+        </form>
+
+        <aside class="preview" aria-label="Предпросмотр">
+          <div class="stage-wrap">
+            <div class="stage" data-stage aria-hidden="true"></div>
+            <button type="button" class="stage__upload" data-stage-upload>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+              <span><b>Загрузите макет</b>чтобы увидеть его на изделии</span>
+            </button>
+            <div class="stage__tools" data-stage-tools hidden>
+              <div class="seg" role="group" aria-label="Как разместить макет">
+                <button type="button" data-fit="cover" aria-pressed="true">Заполнить</button>
+                <button type="button" data-fit="contain" aria-pressed="false">Целиком</button>
+              </div>
+              <div class="stage__pics" data-stage-pics></div>
+              <button type="button" class="stage__replace" data-stage-replace>Заменить</button>
+            </div>
+          </div>
+          <p class="stage__cap" data-stage-cap></p>
+        </aside>
       </div>
     </div>
   </section>
@@ -182,104 +281,6 @@
         <div><dt>Телефон и WhatsApp</dt><dd><a data-cfg="phone2" href="#">+7 965 940-00-66</a></dd></div>
         <div><dt>Instagram</dt><dd><a data-cfg="insta" href="#" target="_blank" rel="noopener">@lamast_095</a></dd></div>
       </dl>
-    </div>
-  </section>
-
-  <!-- ПРОЦЕСС: реальная последовательность, поэтому с номерами -->
-  <section class="process" id="process">
-    <div class="wrap">
-      <div class="sec-head sec-head--light">
-        <h2>Порядок работы</h2>
-      </div>
-      <ol class="steps">
-        <li>
-          <h3>Заявка</h3>
-          <p>Отправьте макет, фотографию объекта или размеры через форму на сайте или в WhatsApp.</p>
-        </li>
-        <li>
-          <h3>Расчёт и макет</h3>
-          <p>Рассчитываем стоимость и сроки. При необходимости разрабатываем макет и согласовываем его с вами.</p>
-        </li>
-        <li>
-          <h3>Производство</h3>
-          <p>Изготавливаем изделие: печать, плоттерная резка, сборка букв и световых коробов.</p>
-        </li>
-        <li>
-          <h3>Монтаж</h3>
-          <p>Доставляем и устанавливаем конструкцию. При необходимости изготавливаем каркас.</p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- БРИФ → WHATSAPP: конструктор + предпросмотр -->
-  <section class="brief" id="brief">
-    <div class="wrap">
-      <div class="sec-head">
-        <h2>Расчёт стоимости</h2>
-        <p>Выберите изделие и параметры, загрузите макет. Заявка будет отправлена нам в WhatsApp.</p>
-      </div>
-      <div class="brief__in">
-        <form id="briefForm" class="brief__form" novalidate>
-          <fieldset class="field">
-            <legend>Изделие</legend>
-            <div class="products" data-products></div>
-          </fieldset>
-
-          <div class="config" data-config></div>
-
-          <div class="field">
-            <span id="dropLabel">Макет или фото</span>
-            <label class="drop" data-drop>
-              <input type="file" name="files" multiple accept="image/*,.pdf,.ai,.cdr,.eps,.psd,.svg,.tif,.tiff,.zip" aria-labelledby="dropLabel">
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
-              <span><b>Перетащите файл</b> или выберите на устройстве. JPG, PNG, PDF, AI, CDR</span>
-            </label>
-            <ul class="files" data-files></ul>
-          </div>
-
-          <label class="field">
-            <span>Комментарий</span>
-            <textarea name="desc" rows="3" placeholder="Место размещения, цвета, желаемые сроки"></textarea>
-          </label>
-
-          <div class="field-row">
-            <label class="field">
-              <span>Адрес объекта</span>
-              <input name="city" type="text" value="Грозный" placeholder="Город, улица" autocomplete="address-level2">
-            </label>
-            <label class="field">
-              <span>Ваше имя</span>
-              <input name="name" type="text" placeholder="Имя" autocomplete="given-name">
-            </label>
-          </div>
-
-          <button class="btn btn--wa btn--lg" type="submit">
-            <svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-wa"/></svg>
-            Отправить заявку в WhatsApp
-          </button>
-          <p class="form-note" data-note role="status" aria-live="polite"></p>
-        </form>
-
-        <aside class="preview" aria-label="Предпросмотр">
-          <div class="stage-wrap">
-            <div class="stage" data-stage aria-hidden="true"></div>
-            <button type="button" class="stage__upload" data-stage-upload>
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
-              <span><b>Загрузите макет</b>чтобы увидеть его на изделии</span>
-            </button>
-            <div class="stage__tools" data-stage-tools hidden>
-              <div class="seg" role="group" aria-label="Как разместить макет">
-                <button type="button" data-fit="cover" aria-pressed="true">Заполнить</button>
-                <button type="button" data-fit="contain" aria-pressed="false">Целиком</button>
-              </div>
-              <div class="stage__pics" data-stage-pics></div>
-              <button type="button" class="stage__replace" data-stage-replace>Заменить</button>
-            </div>
-          </div>
-          <p class="stage__cap" data-stage-cap></p>
-        </aside>
-      </div>
     </div>
   </section>
 
