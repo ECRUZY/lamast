@@ -223,19 +223,31 @@ function neonFrom(url) {
     if (x1 < 0) throw new Error("на картинке не нашлось линий");
     const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
     // поля вокруг рисунка, чтобы свечение и акрил не обрезались
-    const pad = Math.round(Math.max(cw, ch) * 0.08), W = cw + pad * 2, H = ch + pad * 2;
+    const pad = Math.round(Math.max(cw, ch) * 0.13), W = cw + pad * 2, H = ch + pad * 2;
     const L = document.createElement("canvas"); L.width = W; L.height = H;
     L.getContext("2d").drawImage(m, x0, y0, cw, ch, pad, pad, cw, ch);
-    // акрил по контуру: рисунок «раздуваем» во все стороны и заливаем
+    // акрил по контуру — одна цельная пластина, как у настоящей вывески:
+    // раздуваем линии, размываем и режем по порогу (так заливаются щели между буквами и строками),
+    // потом ещё раз сглаживаем край
     const Pc = document.createElement("canvas"); Pc.width = W; Pc.height = H;
     const pg = Pc.getContext("2d", { willReadFrequently: true });
-    const r = pad * 0.75;
+    const r = Math.max(cw, ch) * 0.065;
     const stamp = (dx, dy) => pg.drawImage(m, x0, y0, cw, ch, pad + dx, pad + dy, cw, ch);
-    for (let s = 0; s < 24; s++) { const t = (s / 24) * Math.PI * 2; stamp(Math.cos(t) * r, Math.sin(t) * r); }
-    for (let s = 0; s < 12; s++) { const t = (s / 12) * Math.PI * 2; stamp(Math.cos(t) * r * 0.5, Math.sin(t) * r * 0.5); }
-    const pd = pg.getImageData(0, 0, W, H), pp = pd.data;
-    for (let i = 0; i < pp.length; i += 4) { pp[i] = pp[i + 1] = pp[i + 2] = 255; pp[i + 3] = pp[i + 3] > 24 ? 255 : 0; }
-    pg.putImageData(pd, 0, 0);
+    for (let s = 0; s < 32; s++) { const t = (s / 32) * Math.PI * 2; stamp(Math.cos(t) * r, Math.sin(t) * r); }
+    for (let s = 0; s < 16; s++) { const t = (s / 16) * Math.PI * 2; stamp(Math.cos(t) * r * 0.5, Math.sin(t) * r * 0.5); }
+    stamp(0, 0);
+    // размытие через уменьшение и обратное растяжение картинки (работает во всех браузерах)
+    const soften = (f, cut) => {
+      const sw = Math.max(1, Math.round(W / f)), sh = Math.max(1, Math.round(H / f));
+      const t = document.createElement("canvas"); t.width = sw; t.height = sh;
+      const tg = t.getContext("2d"); tg.imageSmoothingQuality = "high"; tg.drawImage(Pc, 0, 0, sw, sh);
+      pg.clearRect(0, 0, W, H); pg.imageSmoothingQuality = "high"; pg.drawImage(t, 0, 0, W, H);
+      const pd = pg.getImageData(0, 0, W, H), pp = pd.data;
+      for (let i = 0; i < pp.length; i += 4) { pp[i] = pp[i + 1] = pp[i + 2] = 255; pp[i + 3] = pp[i + 3] > cut ? 255 : 0; }
+      pg.putImageData(pd, 0, 0);
+    };
+    soften(Math.max(10, Math.round(Math.max(W, H) / 32)), 46);  // залить щели между буквами и строками
+    soften(Math.max(3, Math.round(Math.max(W, H) / 220)), 128); // сгладить край
     return { lines: L.toDataURL("image/png"), plate: Pc.toDataURL("image/png"), ratio: W / H };
   })();
   neonCache.set(url, job);
@@ -481,7 +493,7 @@ async function bakeNeon(r, color, contour) {
   const W = lines.naturalWidth, H = lines.naturalHeight, k = Math.max(W, H) / 900;
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d");
-  if (contour) { g.globalAlpha = 0.16; g.drawImage(plate, 0, 0); g.globalAlpha = 1; }
+  if (contour) { g.globalAlpha = 0.2; g.drawImage(plate, 0, 0); g.globalAlpha = 1; }
   const col = NEON_COLORS[color] || NEON_COLORS["Тёплый белый"];
   g.shadowColor = col;
   [60, 36, 20, 10, 4].forEach((b) => { g.shadowBlur = b * k; g.drawImage(lines, 0, 0); g.drawImage(lines, 0, 0); });
