@@ -734,3 +734,11 @@ kbd { font: 600 12px/1 var(--text); padding: 3px 6px; border-radius: 5px; backgr
   /* кнопка заявки на телефоне скрыта, бургер прижимаем вправо */
   .nav__in > .btn + .nav__burger { margin-left: auto; }
 }
+
+/* Safari не растягивает элементы внутри <button> с flex — задаём ширину явно */
+.cat__scene, .cat__body { display: grid; width: 100%; align-self: stretch; }
+.cat--mount .cat__scene, .cat--mount .cat__body { width: auto; }
+@media (max-width: 560px) {
+  .cat--mount .cat__scene, .cat--mount .cat__body { width: 100%; }
+}
+.cat .cat__scene { border-radius: 0; }
