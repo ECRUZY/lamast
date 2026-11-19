@@ -2,8 +2,47 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://ralamast.ru/</loc>
-    <lastmod>2026-11-18</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-11-19</lastmod>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/vyveski/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/svetovye-bukvy/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/neonovye-vyveski/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/svetovye-koroba/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/bannery/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/okleyka-vitrin/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/tablichki/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ralamast.ru/fotozony/</loc>
+    <lastmod>2026-11-19</lastmod>
+    <priority>0.8</priority>
   </url>
 </urlset>

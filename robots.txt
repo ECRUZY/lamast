@@ -6,5 +6,6 @@ Disallow: /zakaz.html
 Disallow: /_shot.html
 Disallow: /google-drive/
 Disallow: /bump-version.sh
+Disallow: /build-pages.py
 
 Sitemap: https://ralamast.ru/sitemap.xml

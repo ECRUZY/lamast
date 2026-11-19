@@ -625,6 +625,10 @@ $("[data-crop-open]").addEventListener("click", openCrop);
 window.onNeonReady = () => { renderStage(); renderScenes(); };
 
 /* старт */
-selectProduct(PRODUCTS[0].id);
+{
+  // ссылка со страницы услуги: /?p=neon#brief открывает нужное изделие
+  const want = new URLSearchParams(location.search).get("p");
+  selectProduct(PRODUCTS.some((p) => p.id === want) ? want : PRODUCTS[0].id);
+}
 renderScenes();
 if (document.fonts) document.fonts.ready.then(renderScenes);
